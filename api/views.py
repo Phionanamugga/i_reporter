@@ -5,12 +5,13 @@ import re
 
 incident = Blueprint('incident', __name__)
 user = Blueprint('user', __name__)
-incidents = []
 
 name_regex = r"[a-zA-Z]"
 password_regex = r"(?=.*[0-9])"
 username_regex = r"[a-zA-Z0-9_]"
 phone_regex = r"\d{3}-\d{3}-\d{4}"
+record = Blueprint('record', __name__)
+incidents = []
 
 
 @incident.route('/api/v1/incidents', methods=['POST'])
@@ -84,12 +85,15 @@ def register_user():
     text_fields = ['othernames', 'firstname', 'lastname', 'username']
     user_fields = ['othernames', 'firstname', 'lastname']
     key_fields = ['email', 'password']
+    for user in users:
+        if user.email == data['email']:
+            return jsonify({"message": "user already exists!"}), 400
     for name in user_fields:
         if not re.match(name_regex, data[name]):
             return jsonify({'message': 'Enter correct ' + name + ' format'}), 400
     for text_field in text_fields:
         if len(data[text_field]) > 10:
-            return jsonify({'message': text_field + ' too long'}), 404      
+            return jsonify({'message': text_field + ' too long'}), 404     
     for key in key_fields:
         if not data[key] or data[key].isspace():
             return jsonify({'message': key + ' field can not be empty.'}), 400   
