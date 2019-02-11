@@ -8,24 +8,24 @@ class Test_user_views(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
         
-    def test_register_user(self):
-        # Tests that the end point enables a new user create an account
-        user_details = {
-                        "firstname": "emily",
-                        "lastname": "mirembe",
-                        "othernames": "princess",
-                        "email": "email@gmail.com",
-                        "phonenumber": "123-456-7890",
-                        "username": "username",
-                        "password": "134546m4mmfr"
-                        }
-        response = self.client.post('api/v1/users',
-                                    data=json.dumps(user_details),
-                                    content_type="application/json"
-                                    )
-        msg = json.loads(response.data)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("account has been successfully created", msg['message'])
+    # def test_register_user(self):
+    #     # Tests that the end point enables a new user create an account
+    #     user_details = {
+    #                     "firstname": "emily",
+    #                     "lastname": "mirembe",
+    #                     "othernames": "princess",
+    #                     "email": "email@gmail.com",
+    #                     "phonenumber": "123-456-7890",
+    #                     "username": "username",
+    #                     "password": "134546m4mmfr"
+    #                     }
+    #     response = self.client.post('api/v1/users',
+    #                                 data=json.dumps(user_details),
+    #                                 content_type="application/json"
+    #                                 )
+    #     msg = json.loads(response.data)
+    #     self.assertEqual(response.status_code, 201)
+    #     self.assertIn("account has been successfully created", msg['message'])
      
     def test_fetch_all_users(self):
         # Tests that the end point fetches all users
