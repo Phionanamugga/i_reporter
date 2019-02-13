@@ -72,11 +72,17 @@ def delete_incident(incident_id):
             incidents.remove(incident)
     return jsonify({"message": "incident successfully deleted"}), 201
 
-users = []
+users = [
+    User(1, 'aldo', 'Okware', 'Padde', 'aldo@gmail.com', '0779862290','aldo', 'test12345'),
+]
+
+user_id_mapping = {u.user_id: u for u in users}
+user_email_mapping = {u.email: u for u in users}
 
 
 @user.route('/api/v1/users', methods=['POST'])
 def register_user():
+    global users
     # registers a  new user
     data = request.get_json()
     user_id = len(users)+1
@@ -85,15 +91,16 @@ def register_user():
     text_fields = ['othernames', 'firstname', 'lastname', 'username']
     user_fields = ['othernames', 'firstname', 'lastname']
     key_fields = ['email', 'password']
+
     for user in users:
+        print(user.email)
+        print(data['email'])
         if user.email == data['email']:
             return jsonify({"message": "user already exists!"}), 400
     for name in user_fields:
         if not re.match(name_regex, data[name]):
             return jsonify({'message': 'Enter correct ' + name + ' format'}), 400
-    for text_field in text_fields:
-        if len(data[text_field]) > 10:
-            return jsonify({'message': text_field + ' too long'}), 404     
+    
     for key in key_fields:
         if not data[key] or data[key].isspace():
             return jsonify({'message': key + ' field can not be empty.'}), 400   
@@ -109,30 +116,26 @@ def register_user():
         return jsonify({'message': 'Password must be atleast 8 characters'}), 400  
     user = User(user_id, data['firstname'], data['lastname'],
                 data['othernames'], data['email'], data['phonenumber'],
-                username, registered_on, data['password'])
+                data['username'], data['password'])
     users.append(user)
-    return jsonify({"message": " account has been successfully created"}), 201
+    return jsonify({"user_details": user.__dict__}), 201
 
 
 @user.route('/api/v1/users', methods=['GET'])
 def fetch_users():
+    global users
     # fetches all user's records
-    user = [user.get_user_details() for user in users]
-    return jsonify({"users": user})
+    data = [user.__dict__ for user in users]
+    return jsonify({"users": data})
 
 
 @user.route('/api/v1/users/<int:user_id>', methods=['GET'])
 # this fetches a single user account
 def fetch_single_user_details(user_id):
-    fetched_user = []
-    try:
-        user = users[user_id - 1]
-        if user not in users:
-            return jsonify({"message": "user doesnot exist"}), 404
-        fetched_user.append(user.get_user_details())
-        return jsonify({"user": fetched_user}), 200
-    except Exception:
-        return jsonify({"message": "User not found"}), 404
+    user = user_id_mapping.get(user_id, None)
+    if user is None:
+        return jsonify({"message": "user doesnot exist"}), 404
+    return jsonify({"user": user.__dict__}), 200
 
 
 @user.route('/api/v1/users/login', methods=['POST'])
@@ -140,10 +143,13 @@ def login():
     # this function enables user to log in  
     data = request.get_json()
     email = data.get('email')
-    for user in users:
-        if user.email == email:
-            return jsonify({'message': user.get_user_details()}), 200
-    return jsonify({'message': 'user not found in list'}), 404
+    user = user_email_mapping.get(email, None)
+    if user is None:
+        return jsonify({'message': f"No user with provided email {email}"}), 404
+    else:
+        if user.password == data['password']:
+            return jsonify({'message': 'user successfully logged in'})
+        return jsonify({'message': 'incorrect password'}), 400
 
 
 @user.route('/api/v1/users/<int:user_id>', methods=['DELETE'])

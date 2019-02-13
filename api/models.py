@@ -1,3 +1,5 @@
+# from datetime.datetime import now
+
 class Incident:
     # this class defines the record created by a user
     def __init__(self, incident_id, createdOn, created_by, incident_type, title,
@@ -33,27 +35,16 @@ class Incident:
 class User:
     # this class defines the details of a user
     def __init__(self, user_id, firstname, lastname, othernames, email,
-                 phonenumber, username, registered_on, password):
+                 phonenumber, username, password):
         self.user_id = user_id
         self.firstname = firstname
         self.lastname = lastname
-        self. othernames = othernames
-        self. email = email
-        self.password = password
+        self.othernames = othernames
+        self.email = email
         self.phonenumber = phonenumber
         self.username = username
-        self. registered_on = registered_on
+        self.password = password
+        self. registered_on = None
 
-    def get_user_details(self):
-        # this function gets user details
-        return {
-            "user_id": self.user_id,
-            "firstname": self.firstname,
-            "lastname": self.lastname,
-            " othernames": self.othernames,
-            "email": self.email,
-            "phonenumber": self.phonenumber,
-            "username": self.username,
-            "registered_on": self.registered_on,
-            "password": self.password
-        }
+
+# 

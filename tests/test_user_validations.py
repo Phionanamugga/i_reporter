@@ -4,20 +4,10 @@ from api.models import User
 
 class TestUser(unittest.TestCase):
     def setUp(self):
-        kwargs = {
-                "user_id": user_id,
-                "firstname": data['firstname'],
-                "lastname": data['lastname'],
-                "email": data['email'],
-                "phonenumber": data['phonenumber'],
-                "username": data['username'],
-                "password": data['password'],
-                "registered_on": registered_on
-            }
-        self.user = User(**kwargs)
+        self.user = User(1, 'Phie', 'John', 'brown', 'email@gmail.com', 'aldo', '0779862290', 'test1234')
 
     def test_user_id(self):
-        # Tests that the user_id is equal to the given id
+        # Tets that the user_id is equal to the given id
         self.assertEqual(self.user.user_id, 1, "user_id must be 1")
         self.user.user_id = 2
         self.assertEqual(self.user.user_id, 2, "user_id is now 2")
@@ -38,10 +28,10 @@ class TestUser(unittest.TestCase):
 
     def test_password(self):
         # Tests that the password is equal to the given password
-        self.assertEqual(self.user.password, "1234567")
-        self.user.password = "56784"
-        self.assertEqual(self.user.password, "56784",
-                         "password is now 56784")
+        self.assertEqual(self.user.password, "test1234")
+        self.user.password = "test12345"
+        self.assertEqual(self.user.password, "test12345",
+                         "password is now test12345")
 
     def test_class_instance(self):
         # Tests that the defined object is an instance of the User class
