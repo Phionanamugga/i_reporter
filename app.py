@@ -1,4 +1,4 @@
-from api import app
+from api.views import app
 
 
 @app.route('/')

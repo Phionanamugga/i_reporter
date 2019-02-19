@@ -1,20 +1,19 @@
 from flask import jsonify, request, abort, Blueprint
 from .models import Incident, User
 from datetime import datetime
+from flask import Flask
 import re
+app = Flask(__name__)
 
-incident = Blueprint('incident', __name__)
-user = Blueprint('user', __name__)
 
 name_regex = r"[a-zA-Z]"
 password_regex = r"(?=.*[0-9])"
 username_regex = r"[a-zA-Z0-9_]"
 phone_regex = r"\d{3}-\d{3}-\d{4}"
-record = Blueprint('record', __name__)
 incidents = []
 
 
-@incident.route('/api/v1/incidents', methods=['POST'])
+@app.route('/api/v1/incidents', methods=['POST'])
 def create_incident():
     # Creates a new incident
     data = request.get_json()
@@ -28,14 +27,14 @@ def create_incident():
     return jsonify({"message": " Successfully created"}), 201
 
 
-@incident.route('/api/v1/incidents', methods=['GET'])
+@app.route('/api/v1/incidents', methods=['GET'])
 def fetch_incidents():
     # fetches all user's incidents
     Incidents = [incident.get_incident() for incident in incidents]
     return jsonify({"incidents": Incidents}), 200
 
 
-@incident.route('/api/v1/incidents/<int:incident_id>', methods=['GET'])
+@app.route('/api/v1/incidents/<int:incident_id>', methods=['GET'])
 def fetch_single_incident(incident_id):
     fetched_incident = []
     incident = incidents[incident_id - 1]
@@ -43,7 +42,7 @@ def fetch_single_incident(incident_id):
     return jsonify({"incident": fetched_incident}), 200
 
 
-@incident.route('/api/v1/incidents/<int:incident_id>', methods=['PUT'])
+@app.route('/api/v1/incidents/<int:incident_id>', methods=['PUT'])
 def edit_incident(incident_id):
     # function for editing an incident
     if not incident_id:
@@ -62,7 +61,7 @@ def edit_incident(incident_id):
     return jsonify({'message': "successfully edited"}), 201
 
 
-@incident.route('/api/v1/incidents/<int:incident_id>', methods=['DELETE'])
+@app.route('/api/v1/incidents/<int:incident_id>', methods=['DELETE'])
 def delete_incident(incident_id):
     # this function enables user delete an incident
     if incident_id == 0 or incident_id > len(incidents):
@@ -80,7 +79,7 @@ user_id_mapping = {u.user_id: u for u in users}
 user_email_mapping = {u.email: u for u in users}
 
 
-@user.route('/api/v1/users', methods=['POST'])
+@app.route('/api/v1/users', methods=['POST'])
 def register_user():
     global users
     # registers a  new user
@@ -121,7 +120,7 @@ def register_user():
     return jsonify({"user_details": user.__dict__}), 201
 
 
-@user.route('/api/v1/users', methods=['GET'])
+@app.route('/api/v1/users', methods=['GET'])
 def fetch_users():
     global users
     # fetches all user's records
@@ -129,7 +128,7 @@ def fetch_users():
     return jsonify({"users": data})
 
 
-@user.route('/api/v1/users/<int:user_id>', methods=['GET'])
+@app.route('/api/v1/users/<int:user_id>', methods=['GET'])
 # this fetches a single user account
 def fetch_single_user_details(user_id):
     user = user_id_mapping.get(user_id, None)
@@ -138,7 +137,7 @@ def fetch_single_user_details(user_id):
     return jsonify({"user": user.__dict__}), 200
 
 
-@user.route('/api/v1/users/login', methods=['POST'])
+@app.route('/api/v1/users/login', methods=['POST'])
 def login():
     # this function enables user to log in  
     data = request.get_json()
@@ -152,7 +151,7 @@ def login():
         return jsonify({'message': 'incorrect password'}), 400
 
 
-@user.route('/api/v1/users/<int:user_id>', methods=['DELETE'])
+@app.route('/api/v1/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     # this function enables user to delete his/her account
     if user_id in users == user_id:

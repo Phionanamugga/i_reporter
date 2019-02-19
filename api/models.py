@@ -1,5 +1,6 @@
 # from datetime.datetime import now
 
+
 class Incident:
     # this class defines the record created by a user
     def __init__(self, incident_id, createdOn, created_by, incident_type, title,
@@ -47,4 +48,3 @@ class User:
         self. registered_on = None
 
 
-# 
