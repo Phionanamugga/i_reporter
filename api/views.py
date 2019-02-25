@@ -10,7 +10,11 @@ name_regex = r"[a-zA-Z]"
 password_regex = r"(?=.*[0-9])"
 username_regex = r"[a-zA-Z0-9_]"
 phone_regex = r"\d{3}-\d{3}-\d{4}"
-incidents = []
+incidents = [
+    Incident(1, 'corruption in hospital', 'doctor asks for bribe', 'draft', 'immediate action required','2/2/2018', 'kiteezi', 'redflag', 'jpg', 'mp4', 'Asus'),
+]
+
+incident_id_mapping = {i.incident_id: i for i in incidents}
 
 
 @app.route('/api/v1/incidents', methods=['POST'])
@@ -30,16 +34,16 @@ def create_incident():
 @app.route('/api/v1/incidents', methods=['GET'])
 def fetch_incidents():
     # fetches all user's incidents
-    Incidents = [incident.get_incident() for incident in incidents]
-    return jsonify({"incidents": Incidents}), 200
+    data = [incident.__dict__ for incident in incidents]
+    return jsonify({"incidents": data}), 200
 
 
 @app.route('/api/v1/incidents/<int:incident_id>', methods=['GET'])
 def fetch_single_incident(incident_id):
-    fetched_incident = []
-    incident = incidents[incident_id - 1]
-    fetched_incident.append(incident.get_incident())
-    return jsonify({"incident": fetched_incident}), 200
+    incident = incident_id_mapping.get(incident_id, None)
+    if incident is None:
+        return jsonify({"message": "incident doesnot exist"}), 404
+    return jsonify({"incident": incident.__dict__}), 200
 
 
 @app.route('/api/v1/incidents/<int:incident_id>', methods=['PUT'])
