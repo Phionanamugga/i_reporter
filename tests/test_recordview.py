@@ -1,6 +1,6 @@
 import unittest
 import json
-from api.views import app
+from api import app
 
 
 class Test_incident_views(unittest.TestCase):

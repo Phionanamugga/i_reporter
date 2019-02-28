@@ -14,6 +14,21 @@ class Incident:
         self.videos = videos
         self.comments = comments
 
+    def get_incident(self):
+        return {
+            "incident_id": self.incident_id,
+            "created_on": self.createdOn,
+            "created_by": self.created_by,
+            "incident_type": self.incident_type,
+            "title": self.title,
+            "description": self.description,
+            "location": self.location,
+            "status": self.status,
+            "images": self.images,
+            "videos": self.videos,
+            "comments": self.comments
+        }
+
 
 class User:
     # this class defines the details of a user
@@ -28,6 +43,7 @@ class User:
         self.username = username
         self.password = password
         self. registered_on = None
+
 
 
 

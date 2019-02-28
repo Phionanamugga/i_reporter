@@ -1,23 +1,23 @@
 from flask import jsonify, request, abort, Blueprint
 from .models import Incident, User
 from datetime import datetime
-from flask import Flask
 import re
-app = Flask(__name__)
+from .validations import Validate
 
 
-name_regex = r"[a-zA-Z]"
-password_regex = r"(?=.*[0-9])"
-username_regex = r"[a-zA-Z0-9_]"
-phone_regex = r"\d{3}-\d{3}-\d{4}"
-incidents = [
-    Incident(1, 'corruption in hospital', 'doctor asks for bribe', 'draft', 'immediate action required','2/2/2018', 'kiteezi', 'redflag', 'jpg', 'mp4', 'Asus'),
+incident = Blueprint('incident', __name__)
+user = Blueprint('user', __name__)
+incidents = []
+
+validate = Validate()
+users = [
+    User(1, 'aldo', 'Okware', 'Padde', 'aldo@gmail.com', '0779862290','aldo', 'test12345'),
 ]
+user_id_mapping = {u.user_id: u for u in users}
+user_email_mapping = {u.email: u for u in users}
 
-incident_id_mapping = {i.incident_id: i for i in incidents}
 
-
-@app.route('/api/v1/incidents', methods=['POST'])
+@incident.route('/api/v1/incidents', methods=['POST'])
 def create_incident():
     # Creates a new incident
     data = request.get_json()
@@ -31,22 +31,22 @@ def create_incident():
     return jsonify({"message": " Successfully created"}), 201
 
 
-@app.route('/api/v1/incidents', methods=['GET'])
+@incident.route('/api/v1/incidents', methods=['GET'])
 def fetch_incidents():
     # fetches all user's incidents
-    data = [incident.__dict__ for incident in incidents]
-    return jsonify({"incidents": data}), 200
+    Incidents = [incident.get_incident() for incident in incidents]
+    return jsonify({"incidents": Incidents}), 200
 
 
-@app.route('/api/v1/incidents/<int:incident_id>', methods=['GET'])
+@incident.route('/api/v1/incidents/<int:incident_id>', methods=['GET'])
 def fetch_single_incident(incident_id):
-    incident = incident_id_mapping.get(incident_id, None)
-    if incident is None:
-        return jsonify({"message": "incident doesnot exist"}), 404
-    return jsonify({"incident": incident.__dict__}), 200
+    fetched_incident = []
+    incident = incidents[incident_id - 1]
+    fetched_incident.append(incident.get_incident())
+    return jsonify({"incident": fetched_incident}), 200
 
 
-@app.route('/api/v1/incidents/<int:incident_id>', methods=['PUT'])
+@incident.route('/api/v1/incidents/<int:incident_id>', methods=['PUT'])
 def edit_incident(incident_id):
     # function for editing an incident
     if not incident_id:
@@ -65,7 +65,7 @@ def edit_incident(incident_id):
     return jsonify({'message': "successfully edited"}), 201
 
 
-@app.route('/api/v1/incidents/<int:incident_id>', methods=['DELETE'])
+@incident.route('/api/v1/incidents/<int:incident_id>', methods=['DELETE'])
 def delete_incident(incident_id):
     # this function enables user delete an incident
     if incident_id == 0 or incident_id > len(incidents):
@@ -75,56 +75,33 @@ def delete_incident(incident_id):
             incidents.remove(incident)
     return jsonify({"message": "incident successfully deleted"}), 201
 
-users = [
-    User(1, 'aldo', 'Okware', 'Padde', 'aldo@gmail.com', '0779862290','aldo', 'test12345'),
-]
 
-user_id_mapping = {u.user_id: u for u in users}
-user_email_mapping = {u.email: u for u in users}
-
-
-@app.route('/api/v1/users', methods=['POST'])
+@user.route('/api/v1/users', methods=['POST'])
 def register_user():
     global users
     # registers a  new user
     data = request.get_json()
-    user_id = len(users)+1
+    print(data)
     registered_on = datetime.now()
-    username = data['username']
-    text_fields = ['othernames', 'firstname', 'lastname', 'username']
-    user_fields = ['othernames', 'firstname', 'lastname']
-    key_fields = ['email', 'password']
+    user_id = len(users)+1
+    is_valid = validate.validate_user(data)
+    print(is_valid, "you see")
+  
+    if is_valid != "is_valid": 
+        return jsonify({"message": is_valid}), 400
 
     for user in users:
-        print(user.email)
-        print(data['email'])
         if user.email == data['email']:
-            return jsonify({"message": "user already exists!"}), 400
-    for name in user_fields:
-        if not re.match(name_regex, data[name]):
-            return jsonify({'message': 'Enter correct ' + name + ' format'}), 400
-    
-    for key in key_fields:
-        if not data[key] or data[key].isspace():
-            return jsonify({'message': key + ' field can not be empty.'}), 400   
-    if not username or username.isspace():
-        return jsonify({'message': 'Username can not be empty.'}), 400 
-    if not re.match(r"[^@.]+@[A-Za-z]+\.[a-z]+", data['email']):
-        return jsonify({'message': 'Enter a valid email address.'}), 400
-    if not re.match(username_regex, data['username']):
-        return jsonify({'message': 'Enter a valid username'}), 400
-    if not re.match(phone_regex, data['phonenumber']):
-        return jsonify({'message': 'Enter phone format 123-456-7890'}), 400
-    if len(data['password']) < 8:
-        return jsonify({'message': 'Password must be atleast 8 characters'}), 400  
+                return jsonify({"message": "user already exists!"}), 400
     user = User(user_id, data['firstname'], data['lastname'],
                 data['othernames'], data['email'], data['phonenumber'],
                 data['username'], data['password'])
+    
     users.append(user)
     return jsonify({"user_details": user.__dict__}), 201
 
 
-@app.route('/api/v1/users', methods=['GET'])
+@user.route('/api/v1/users', methods=['GET'])
 def fetch_users():
     global users
     # fetches all user's records
@@ -132,7 +109,7 @@ def fetch_users():
     return jsonify({"users": data})
 
 
-@app.route('/api/v1/users/<int:user_id>', methods=['GET'])
+@user.route('/api/v1/users/<int:user_id>', methods=['GET'])
 # this fetches a single user account
 def fetch_single_user_details(user_id):
     user = user_id_mapping.get(user_id, None)
@@ -141,21 +118,29 @@ def fetch_single_user_details(user_id):
     return jsonify({"user": user.__dict__}), 200
 
 
-@app.route('/api/v1/users/login', methods=['POST'])
+@user.route('/api/v1/users/login', methods=['POST'])
 def login():
     # this function enables user to log in  
     data = request.get_json()
+
+    credentials_valid = validate.validate_login(data)
+
+    if credentials_valid != "credentials_valid":
+        return jsonify({"message": credentials_valid}), 400
+    print(data)
     email = data.get('email')
     user = user_email_mapping.get(email, None)
-    if user is None:
-        return jsonify({'message': f"No user with provided email {email}"}), 404
-    else:
-        if user.password == data['password']:
-            return jsonify({'message': 'user successfully logged in'})
-        return jsonify({'message': 'incorrect password'}), 400
+    # print(user)
+
+    for user in users:
+        if email is None:
+            return jsonify({'message': f"No user with provided email {email}"}), 404
+        if user.password != data['password']:
+            return jsonify({'message': 'incorrect password'}), 400
+    return jsonify({'message': 'user successfully logged in'}), 200
 
 
-@app.route('/api/v1/users/<int:user_id>', methods=['DELETE'])
+@user.route('/api/v1/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     # this function enables user to delete his/her account
     if user_id in users == user_id:
